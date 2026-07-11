@@ -14,6 +14,14 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppTenantSlugRouteImport } from './routes/_app.$tenantSlug'
 import { Route as AppTenantSlugIndexRouteImport } from './routes/_app.$tenantSlug.index'
+import { Route as AppTenantSlugSettingsRouteImport } from './routes/_app.$tenantSlug.settings'
+import { Route as AppTenantSlugNotificationsRouteImport } from './routes/_app.$tenantSlug.notifications'
+import { Route as AppTenantSlugLeadsRouteImport } from './routes/_app.$tenantSlug.leads'
+import { Route as AppTenantSlugInvoicesRouteImport } from './routes/_app.$tenantSlug.invoices'
+import { Route as AppTenantSlugDealsRouteImport } from './routes/_app.$tenantSlug.deals'
+import { Route as AppTenantSlugDashboardRouteImport } from './routes/_app.$tenantSlug.dashboard'
+import { Route as AppTenantSlugInvoicesInvoiceIdRouteImport } from './routes/_app.$tenantSlug.invoices.$invoiceId'
+import { Route as AppTenantSlugDealsDealIdRouteImport } from './routes/_app.$tenantSlug.deals.$dealId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -39,17 +47,76 @@ const AppTenantSlugIndexRoute = AppTenantSlugIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppTenantSlugRoute,
 } as any)
+const AppTenantSlugSettingsRoute = AppTenantSlugSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppTenantSlugRoute,
+} as any)
+const AppTenantSlugNotificationsRoute =
+  AppTenantSlugNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AppTenantSlugRoute,
+  } as any)
+const AppTenantSlugLeadsRoute = AppTenantSlugLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AppTenantSlugRoute,
+} as any)
+const AppTenantSlugInvoicesRoute = AppTenantSlugInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => AppTenantSlugRoute,
+} as any)
+const AppTenantSlugDealsRoute = AppTenantSlugDealsRouteImport.update({
+  id: '/deals',
+  path: '/deals',
+  getParentRoute: () => AppTenantSlugRoute,
+} as any)
+const AppTenantSlugDashboardRoute = AppTenantSlugDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppTenantSlugRoute,
+} as any)
+const AppTenantSlugInvoicesInvoiceIdRoute =
+  AppTenantSlugInvoicesInvoiceIdRouteImport.update({
+    id: '/$invoiceId',
+    path: '/$invoiceId',
+    getParentRoute: () => AppTenantSlugInvoicesRoute,
+  } as any)
+const AppTenantSlugDealsDealIdRoute =
+  AppTenantSlugDealsDealIdRouteImport.update({
+    id: '/$dealId',
+    path: '/$dealId',
+    getParentRoute: () => AppTenantSlugDealsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/$tenantSlug': typeof AppTenantSlugRouteWithChildren
+  '/$tenantSlug/dashboard': typeof AppTenantSlugDashboardRoute
+  '/$tenantSlug/deals': typeof AppTenantSlugDealsRouteWithChildren
+  '/$tenantSlug/invoices': typeof AppTenantSlugInvoicesRouteWithChildren
+  '/$tenantSlug/leads': typeof AppTenantSlugLeadsRoute
+  '/$tenantSlug/notifications': typeof AppTenantSlugNotificationsRoute
+  '/$tenantSlug/settings': typeof AppTenantSlugSettingsRoute
   '/$tenantSlug/': typeof AppTenantSlugIndexRoute
+  '/$tenantSlug/deals/$dealId': typeof AppTenantSlugDealsDealIdRoute
+  '/$tenantSlug/invoices/$invoiceId': typeof AppTenantSlugInvoicesInvoiceIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/$tenantSlug/dashboard': typeof AppTenantSlugDashboardRoute
+  '/$tenantSlug/deals': typeof AppTenantSlugDealsRouteWithChildren
+  '/$tenantSlug/invoices': typeof AppTenantSlugInvoicesRouteWithChildren
+  '/$tenantSlug/leads': typeof AppTenantSlugLeadsRoute
+  '/$tenantSlug/notifications': typeof AppTenantSlugNotificationsRoute
+  '/$tenantSlug/settings': typeof AppTenantSlugSettingsRoute
   '/$tenantSlug': typeof AppTenantSlugIndexRoute
+  '/$tenantSlug/deals/$dealId': typeof AppTenantSlugDealsDealIdRoute
+  '/$tenantSlug/invoices/$invoiceId': typeof AppTenantSlugInvoicesInvoiceIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -57,20 +124,59 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/_app/$tenantSlug': typeof AppTenantSlugRouteWithChildren
+  '/_app/$tenantSlug/dashboard': typeof AppTenantSlugDashboardRoute
+  '/_app/$tenantSlug/deals': typeof AppTenantSlugDealsRouteWithChildren
+  '/_app/$tenantSlug/invoices': typeof AppTenantSlugInvoicesRouteWithChildren
+  '/_app/$tenantSlug/leads': typeof AppTenantSlugLeadsRoute
+  '/_app/$tenantSlug/notifications': typeof AppTenantSlugNotificationsRoute
+  '/_app/$tenantSlug/settings': typeof AppTenantSlugSettingsRoute
   '/_app/$tenantSlug/': typeof AppTenantSlugIndexRoute
+  '/_app/$tenantSlug/deals/$dealId': typeof AppTenantSlugDealsDealIdRoute
+  '/_app/$tenantSlug/invoices/$invoiceId': typeof AppTenantSlugInvoicesInvoiceIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/$tenantSlug' | '/$tenantSlug/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/$tenantSlug'
+    | '/$tenantSlug/dashboard'
+    | '/$tenantSlug/deals'
+    | '/$tenantSlug/invoices'
+    | '/$tenantSlug/leads'
+    | '/$tenantSlug/notifications'
+    | '/$tenantSlug/settings'
+    | '/$tenantSlug/'
+    | '/$tenantSlug/deals/$dealId'
+    | '/$tenantSlug/invoices/$invoiceId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/$tenantSlug'
+  to:
+    | '/'
+    | '/login'
+    | '/$tenantSlug/dashboard'
+    | '/$tenantSlug/deals'
+    | '/$tenantSlug/invoices'
+    | '/$tenantSlug/leads'
+    | '/$tenantSlug/notifications'
+    | '/$tenantSlug/settings'
+    | '/$tenantSlug'
+    | '/$tenantSlug/deals/$dealId'
+    | '/$tenantSlug/invoices/$invoiceId'
   id:
     | '__root__'
     | '/'
     | '/_app'
     | '/login'
     | '/_app/$tenantSlug'
+    | '/_app/$tenantSlug/dashboard'
+    | '/_app/$tenantSlug/deals'
+    | '/_app/$tenantSlug/invoices'
+    | '/_app/$tenantSlug/leads'
+    | '/_app/$tenantSlug/notifications'
+    | '/_app/$tenantSlug/settings'
     | '/_app/$tenantSlug/'
+    | '/_app/$tenantSlug/deals/$dealId'
+    | '/_app/$tenantSlug/invoices/$invoiceId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -116,14 +222,106 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTenantSlugIndexRouteImport
       parentRoute: typeof AppTenantSlugRoute
     }
+    '/_app/$tenantSlug/settings': {
+      id: '/_app/$tenantSlug/settings'
+      path: '/settings'
+      fullPath: '/$tenantSlug/settings'
+      preLoaderRoute: typeof AppTenantSlugSettingsRouteImport
+      parentRoute: typeof AppTenantSlugRoute
+    }
+    '/_app/$tenantSlug/notifications': {
+      id: '/_app/$tenantSlug/notifications'
+      path: '/notifications'
+      fullPath: '/$tenantSlug/notifications'
+      preLoaderRoute: typeof AppTenantSlugNotificationsRouteImport
+      parentRoute: typeof AppTenantSlugRoute
+    }
+    '/_app/$tenantSlug/leads': {
+      id: '/_app/$tenantSlug/leads'
+      path: '/leads'
+      fullPath: '/$tenantSlug/leads'
+      preLoaderRoute: typeof AppTenantSlugLeadsRouteImport
+      parentRoute: typeof AppTenantSlugRoute
+    }
+    '/_app/$tenantSlug/invoices': {
+      id: '/_app/$tenantSlug/invoices'
+      path: '/invoices'
+      fullPath: '/$tenantSlug/invoices'
+      preLoaderRoute: typeof AppTenantSlugInvoicesRouteImport
+      parentRoute: typeof AppTenantSlugRoute
+    }
+    '/_app/$tenantSlug/deals': {
+      id: '/_app/$tenantSlug/deals'
+      path: '/deals'
+      fullPath: '/$tenantSlug/deals'
+      preLoaderRoute: typeof AppTenantSlugDealsRouteImport
+      parentRoute: typeof AppTenantSlugRoute
+    }
+    '/_app/$tenantSlug/dashboard': {
+      id: '/_app/$tenantSlug/dashboard'
+      path: '/dashboard'
+      fullPath: '/$tenantSlug/dashboard'
+      preLoaderRoute: typeof AppTenantSlugDashboardRouteImport
+      parentRoute: typeof AppTenantSlugRoute
+    }
+    '/_app/$tenantSlug/invoices/$invoiceId': {
+      id: '/_app/$tenantSlug/invoices/$invoiceId'
+      path: '/$invoiceId'
+      fullPath: '/$tenantSlug/invoices/$invoiceId'
+      preLoaderRoute: typeof AppTenantSlugInvoicesInvoiceIdRouteImport
+      parentRoute: typeof AppTenantSlugInvoicesRoute
+    }
+    '/_app/$tenantSlug/deals/$dealId': {
+      id: '/_app/$tenantSlug/deals/$dealId'
+      path: '/$dealId'
+      fullPath: '/$tenantSlug/deals/$dealId'
+      preLoaderRoute: typeof AppTenantSlugDealsDealIdRouteImport
+      parentRoute: typeof AppTenantSlugDealsRoute
+    }
   }
 }
 
+interface AppTenantSlugDealsRouteChildren {
+  AppTenantSlugDealsDealIdRoute: typeof AppTenantSlugDealsDealIdRoute
+}
+
+const AppTenantSlugDealsRouteChildren: AppTenantSlugDealsRouteChildren = {
+  AppTenantSlugDealsDealIdRoute: AppTenantSlugDealsDealIdRoute,
+}
+
+const AppTenantSlugDealsRouteWithChildren =
+  AppTenantSlugDealsRoute._addFileChildren(AppTenantSlugDealsRouteChildren)
+
+interface AppTenantSlugInvoicesRouteChildren {
+  AppTenantSlugInvoicesInvoiceIdRoute: typeof AppTenantSlugInvoicesInvoiceIdRoute
+}
+
+const AppTenantSlugInvoicesRouteChildren: AppTenantSlugInvoicesRouteChildren = {
+  AppTenantSlugInvoicesInvoiceIdRoute: AppTenantSlugInvoicesInvoiceIdRoute,
+}
+
+const AppTenantSlugInvoicesRouteWithChildren =
+  AppTenantSlugInvoicesRoute._addFileChildren(
+    AppTenantSlugInvoicesRouteChildren,
+  )
+
 interface AppTenantSlugRouteChildren {
+  AppTenantSlugDashboardRoute: typeof AppTenantSlugDashboardRoute
+  AppTenantSlugDealsRoute: typeof AppTenantSlugDealsRouteWithChildren
+  AppTenantSlugInvoicesRoute: typeof AppTenantSlugInvoicesRouteWithChildren
+  AppTenantSlugLeadsRoute: typeof AppTenantSlugLeadsRoute
+  AppTenantSlugNotificationsRoute: typeof AppTenantSlugNotificationsRoute
+  AppTenantSlugSettingsRoute: typeof AppTenantSlugSettingsRoute
   AppTenantSlugIndexRoute: typeof AppTenantSlugIndexRoute
 }
 
 const AppTenantSlugRouteChildren: AppTenantSlugRouteChildren = {
+  AppTenantSlugDashboardRoute: AppTenantSlugDashboardRoute,
+  AppTenantSlugDealsRoute: AppTenantSlugDealsRouteWithChildren,
+  AppTenantSlugInvoicesRoute: AppTenantSlugInvoicesRouteWithChildren,
+  AppTenantSlugLeadsRoute: AppTenantSlugLeadsRoute,
+  AppTenantSlugNotificationsRoute: AppTenantSlugNotificationsRoute,
+  AppTenantSlugSettingsRoute: AppTenantSlugSettingsRoute,
   AppTenantSlugIndexRoute: AppTenantSlugIndexRoute,
 }
 
