@@ -20,23 +20,35 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
+const ROLE_ACCOUNTS = [
+  { role: "Admin", email: "admin@crm.app" },
+  { role: "Owner", email: "owner@crm.app" },
+  { role: "Manager", email: "manager@crm.app" },
+  { role: "Rep", email: "rep@crm.app" },
+  { role: "Finance", email: "finance@crm.app" },
+  { role: "Customer", email: "customer@crm.app" },
+];
+
 function LoginPage() {
   const dispatch = useAppDispatch();
   const nav = useNavigate();
   const status = useAppSelector((s) => s.auth.status);
   const error = useAppSelector((s) => s.auth.error);
-  const [email, setEmail] = useState("demo@crm.app");
+  const [email, setEmail] = useState("admin@crm.app");
   const [password, setPassword] = useState("demo");
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const res = await dispatch(login({ email, password }));
+  async function submit(loginEmail: string, loginPassword: string) {
+    const res = await dispatch(login({ email: loginEmail, password: loginPassword }));
     if (login.fulfilled.match(res)) {
       const slug = res.payload.tenants[0]?.slug ?? "acme";
       dispatch(setCurrentTenant(slug));
       toast.success(`Welcome, ${res.payload.user.name}`);
       nav({ to: `/${slug}/dashboard` });
     }
+  }
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    await submit(email, password);
   }
 
   return (
