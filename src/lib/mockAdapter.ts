@@ -88,8 +88,11 @@ const routes: Route[] = [
     method: "GET",
     pattern: /^\/me$/,
     handle: (_m, cfg) => {
-      // Return first user for simplicity; token isn't decoded in the mock.
-      const user = getDb().users[0];
+      const auth = (cfg.headers as Record<string, string> | undefined)?.["Authorization"] || "";
+      const m = /mock\.([^.]+)\./.exec(auth);
+      const uid = m?.[1];
+      const user =
+        (uid && getDb().users.find((u) => u.id === uid)) || getDb().users[0];
       const tenants = getDb().tenants.filter((t) => user.tenantIds.includes(t.id));
       return ok(cfg, { user, tenants });
     },
