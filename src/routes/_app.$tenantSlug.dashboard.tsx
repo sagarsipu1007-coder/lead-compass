@@ -76,12 +76,13 @@ function DashboardPage() {
       <PageHeader
         title={roleTitle[role]}
         description={roleDesc[role]}
-      >
-        <div className="flex items-center gap-2 text-sm">
-          <Badge variant="outline" className="capitalize">{role}</Badge>
-          <span className="text-muted-foreground">Signed in as {userName}</span>
-        </div>
-      </PageHeader>
+        actions={
+          <div className="flex items-center gap-2 text-sm">
+            <Badge variant="outline" className="capitalize">{role}</Badge>
+            <span className="text-muted-foreground">Signed in as {userName}</span>
+          </div>
+        }
+      />
 
       <div className="space-y-6 p-6">
         {loading && <KPISkeleton />}
