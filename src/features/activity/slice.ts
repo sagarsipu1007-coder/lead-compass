@@ -110,43 +110,55 @@ const slice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (b) => {
-    b.addCase(fetchContacts.fulfilled, (s, a) =>
+    b.addCase(fetchContacts.fulfilled, (s, a) => {
       contactsAdapter.setAll(s.contacts, a.payload),
+    },
     );
-    b.addCase(createContact.fulfilled, (s, a) =>
+    b.addCase(createContact.fulfilled, (s, a) => {
       contactsAdapter.addOne(s.contacts, a.payload),
+    },
     );
-    b.addCase(updateContact.fulfilled, (s, a) =>
+    b.addCase(updateContact.fulfilled, (s, a) => {
       contactsAdapter.upsertOne(s.contacts, a.payload),
+    },
     );
-    b.addCase(deleteContact.fulfilled, (s, a) =>
+    b.addCase(deleteContact.fulfilled, (s, a) => {
       contactsAdapter.removeOne(s.contacts, a.payload),
+    },
     );
 
-    b.addCase(fetchFollowUps.fulfilled, (s, a) =>
+    b.addCase(fetchFollowUps.fulfilled, (s, a) => {
       followUpsAdapter.setAll(s.followUps, a.payload),
+    },
     );
-    b.addCase(createFollowUp.fulfilled, (s, a) =>
+    b.addCase(createFollowUp.fulfilled, (s, a) => {
       followUpsAdapter.addOne(s.followUps, a.payload),
+    },
     );
-    b.addCase(updateFollowUp.fulfilled, (s, a) =>
+    b.addCase(updateFollowUp.fulfilled, (s, a) => {
       followUpsAdapter.upsertOne(s.followUps, a.payload),
+    },
     );
-    b.addCase(deleteFollowUp.fulfilled, (s, a) =>
+    b.addCase(deleteFollowUp.fulfilled, (s, a) => {
       followUpsAdapter.removeOne(s.followUps, a.payload),
+    },
     );
 
-    b.addCase(fetchTasks.fulfilled, (s, a) =>
+    b.addCase(fetchTasks.fulfilled, (s, a) => {
       tasksAdapter.setAll(s.tasks, a.payload),
+    },
     );
-    b.addCase(createTask.fulfilled, (s, a) =>
+    b.addCase(createTask.fulfilled, (s, a) => {
       tasksAdapter.addOne(s.tasks, a.payload),
+    },
     );
-    b.addCase(updateTask.fulfilled, (s, a) =>
+    b.addCase(updateTask.fulfilled, (s, a) => {
       tasksAdapter.upsertOne(s.tasks, a.payload),
+    },
     );
-    b.addCase(deleteTask.fulfilled, (s, a) =>
+    b.addCase(deleteTask.fulfilled, (s, a) => {
       tasksAdapter.removeOne(s.tasks, a.payload),
+    },
     );
   },
 });
