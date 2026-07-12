@@ -4,13 +4,18 @@
 import type { AxiosAdapter, AxiosRequestConfig, AxiosResponse } from "axios";
 import { DEAL_STAGES, getDb, newId, persist } from "./mockDb";
 import type {
+  Contact,
   Deal,
   DealStage,
+  FollowUp,
+  FollowUpStatus,
   Invoice,
   InvoiceStatus,
   Lead,
   LeadStatus,
-  Notification,
+  Task,
+  TaskPriority,
+  TaskStatus,
   Tenant,
   User,
 } from "./mockDb";
