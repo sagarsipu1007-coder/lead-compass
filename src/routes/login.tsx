@@ -116,9 +116,22 @@ function LoginPage() {
           </Button>
 
           <div className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
-            <div className="font-medium text-foreground">Demo credentials</div>
-            <div>Email: <code>demo@crm.app</code></div>
-            <div>Password: <code>demo</code></div>
+            <div className="mb-2 font-medium text-foreground">Quick sign in as</div>
+            <div className="flex flex-wrap gap-1.5">
+              {ROLE_ACCOUNTS.map((r) => (
+                <Button
+                  key={r.email}
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 px-2 text-xs"
+                  onClick={() => { setEmail(r.email); submit(r.email, "demo"); }}
+                >
+                  {r.role}
+                </Button>
+              ))}
+            </div>
+            <div className="mt-2">Password: <code>demo</code></div>
           </div>
         </form>
       </div>
