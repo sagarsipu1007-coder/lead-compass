@@ -417,6 +417,203 @@ const routes: Route[] = [
       return ok(cfg as unknown as AxiosRequestConfig, u);
     },
   },
+
+  // -------- Contacts --------
+  {
+    method: "GET",
+    pattern: /^\/([^/]+)\/contacts$/,
+    handle: (m, cfg) => {
+      const tid = tenantIdFromSlug(m[1]);
+      if (!tid) return fail(cfg, 404, "Tenant not found");
+      return ok(cfg, getDb().contacts.filter((c) => c.tenantId === tid));
+    },
+  },
+  {
+    method: "POST",
+    pattern: /^\/([^/]+)\/contacts$/,
+    handle: (m, cfg) => {
+      const tid = tenantIdFromSlug(m[1]);
+      if (!tid) return fail(cfg, 404, "Tenant not found");
+      const body = parseBody<Partial<Contact>>(cfg.data);
+      const c: Contact = {
+        id: newId(),
+        tenantId: tid,
+        name: body.name || "Untitled",
+        email: body.email || "",
+        phone: body.phone,
+        company: body.company || "",
+        title: body.title,
+        ownerId: body.ownerId,
+        createdAt: new Date().toISOString(),
+      };
+      getDb().contacts.unshift(c);
+      persist();
+      return ok(cfg, c, 201);
+    },
+  },
+  {
+    method: "PATCH",
+    pattern: /^\/([^/]+)\/contacts\/([^/]+)$/,
+    handle: (m, cfg) => {
+      const body = parseBody<Partial<Contact>>(cfg.data);
+      const idx = getDb().contacts.findIndex((c) => c.id === m[2]);
+      if (idx === -1) return fail(cfg, 404, "Contact not found");
+      getDb().contacts[idx] = { ...getDb().contacts[idx], ...body };
+      persist();
+      return ok(cfg, getDb().contacts[idx]);
+    },
+  },
+  {
+    method: "DELETE",
+    pattern: /^\/([^/]+)\/contacts\/([^/]+)$/,
+    handle: (m, cfg) => {
+      const db = getDb();
+      db.contacts = db.contacts.filter((c) => c.id !== m[2]);
+      persist();
+      return ok(cfg, { ok: true });
+    },
+  },
+
+  // -------- Follow-ups --------
+  {
+    method: "GET",
+    pattern: /^\/([^/]+)\/followups$/,
+    handle: (m, cfg) => {
+      const tid = tenantIdFromSlug(m[1]);
+      if (!tid) return fail(cfg, 404, "Tenant not found");
+      return ok(cfg, getDb().followUps.filter((f) => f.tenantId === tid));
+    },
+  },
+  {
+    method: "POST",
+    pattern: /^\/([^/]+)\/followups$/,
+    handle: (m, cfg) => {
+      const tid = tenantIdFromSlug(m[1]);
+      if (!tid) return fail(cfg, 404, "Tenant not found");
+      const body = parseBody<Partial<FollowUp>>(cfg.data);
+      const f: FollowUp = {
+        id: newId(),
+        tenantId: tid,
+        contactId: body.contactId,
+        dealId: body.dealId,
+        subject: body.subject || "Follow-up",
+        channel: body.channel || "call",
+        dueDate: body.dueDate || new Date().toISOString(),
+        status: (body.status as FollowUpStatus) || "pending",
+        assignedTo: body.assignedTo,
+        createdAt: new Date().toISOString(),
+      };
+      getDb().followUps.unshift(f);
+      persist();
+      return ok(cfg, f, 201);
+    },
+  },
+  {
+    method: "PATCH",
+    pattern: /^\/([^/]+)\/followups\/([^/]+)$/,
+    handle: (m, cfg) => {
+      const body = parseBody<Partial<FollowUp>>(cfg.data);
+      const idx = getDb().followUps.findIndex((f) => f.id === m[2]);
+      if (idx === -1) return fail(cfg, 404, "Follow-up not found");
+      getDb().followUps[idx] = { ...getDb().followUps[idx], ...body };
+      persist();
+      return ok(cfg, getDb().followUps[idx]);
+    },
+  },
+  {
+    method: "DELETE",
+    pattern: /^\/([^/]+)\/followups\/([^/]+)$/,
+    handle: (m, cfg) => {
+      const db = getDb();
+      db.followUps = db.followUps.filter((f) => f.id !== m[2]);
+      persist();
+      return ok(cfg, { ok: true });
+    },
+  },
+
+  // -------- Tasks --------
+  {
+    method: "GET",
+    pattern: /^\/([^/]+)\/tasks$/,
+    handle: (m, cfg) => {
+      const tid = tenantIdFromSlug(m[1]);
+      if (!tid) return fail(cfg, 404, "Tenant not found");
+      return ok(cfg, getDb().tasks.filter((t) => t.tenantId === tid));
+    },
+  },
+  {
+    method: "POST",
+    pattern: /^\/([^/]+)\/tasks$/,
+    handle: (m, cfg) => {
+      const tid = tenantIdFromSlug(m[1]);
+      if (!tid) return fail(cfg, 404, "Tenant not found");
+      const body = parseBody<Partial<Task>>(cfg.data);
+      const t: Task = {
+        id: newId(),
+        tenantId: tid,
+        title: body.title || "Untitled task",
+        description: body.description,
+        dueDate: body.dueDate || new Date().toISOString(),
+        status: (body.status as TaskStatus) || "todo",
+        priority: (body.priority as TaskPriority) || "med",
+        assignedTo: body.assignedTo,
+        createdAt: new Date().toISOString(),
+      };
+      getDb().tasks.unshift(t);
+      persist();
+      return ok(cfg, t, 201);
+    },
+  },
+  {
+    method: "PATCH",
+    pattern: /^\/([^/]+)\/tasks\/([^/]+)$/,
+    handle: (m, cfg) => {
+      const body = parseBody<Partial<Task>>(cfg.data);
+      const idx = getDb().tasks.findIndex((t) => t.id === m[2]);
+      if (idx === -1) return fail(cfg, 404, "Task not found");
+      getDb().tasks[idx] = { ...getDb().tasks[idx], ...body };
+      persist();
+      return ok(cfg, getDb().tasks[idx]);
+    },
+  },
+  {
+    method: "DELETE",
+    pattern: /^\/([^/]+)\/tasks\/([^/]+)$/,
+    handle: (m, cfg) => {
+      const db = getDb();
+      db.tasks = db.tasks.filter((t) => t.id !== m[2]);
+      persist();
+      return ok(cfg, { ok: true });
+    },
+  },
+
+  // -------- Global search --------
+  {
+    method: "GET",
+    pattern: /^\/([^/]+)\/search$/,
+    handle: (m, cfg) => {
+      const tid = tenantIdFromSlug(m[1]);
+      if (!tid) return fail(cfg, 404, "Tenant not found");
+      const q = String(cfg.params?.q || "").trim().toLowerCase();
+      if (!q) return ok(cfg, { leads: [], deals: [], invoices: [], contacts: [] });
+      const db = getDb();
+      const match = (s?: string) => (s || "").toLowerCase().includes(q);
+      return ok(cfg, {
+        leads: db.leads
+          .filter((l) => l.tenantId === tid && (match(l.name) || match(l.email) || match(l.company)))
+          .slice(0, 5),
+        deals: db.deals
+          .filter((d) => d.tenantId === tid && (match(d.title) || match(d.company)))
+          .slice(0, 5),
+        invoices: db.invoices
+          .filter((i) => i.tenantId === tid && (match(i.number) || match(i.clientName)))
+          .slice(0, 5),
+        contacts: db.contacts
+          .filter((c) => c.tenantId === tid && (match(c.name) || match(c.email) || match(c.company)))
+          .slice(0, 5),
+      });
+    },
+  },
 ];
 
 export const mockAdapter: AxiosAdapter = async (config) => {
