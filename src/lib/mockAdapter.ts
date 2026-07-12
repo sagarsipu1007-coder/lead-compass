@@ -88,7 +88,12 @@ const routes: Route[] = [
     method: "GET",
     pattern: /^\/me$/,
     handle: (_m, cfg) => {
-      const auth = (cfg.headers as Record<string, string> | undefined)?.["Authorization"] || "";
+      const h = cfg.headers as { get?: (k: string) => unknown; [k: string]: unknown } | undefined;
+      const authRaw =
+        (h && typeof h.get === "function" && h.get("Authorization")) ||
+        (h && (h["Authorization"] || h["authorization"])) ||
+        "";
+      const auth = String(authRaw || "");
       const m = /mock\.([^.]+)\./.exec(auth);
       const uid = m?.[1];
       const user =
