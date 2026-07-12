@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setSidebarCollapsed } from "@/features/ui/slice";
 import { switchTenant } from "@/components/AppProviders";
 import { logout } from "@/features/auth/slice";
+import { api } from "@/api/client";
 import {
   BarChart3,
   Users,
@@ -19,6 +20,8 @@ import {
   Laptop,
   Check,
   Search,
+  Activity as ActivityIcon,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,12 +38,13 @@ import { Input } from "@/components/ui/input";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { cn } from "@/lib/utils";
 import { setTheme, type ThemeMode } from "@/features/ui/slice";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const NAV = [
   { to: "dashboard", label: "Dashboard", icon: BarChart3 },
   { to: "leads", label: "Leads", icon: Users },
   { to: "deals", label: "Deals", icon: Kanban },
+  { to: "activity", label: "Activity", icon: ActivityIcon },
   { to: "invoices", label: "Invoices", icon: FileText },
   { to: "notifications", label: "Notifications", icon: Bell },
   { to: "settings", label: "Settings", icon: Settings },
@@ -70,7 +74,7 @@ function NavList({
             className={cn(
               "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
               active
-                ? "bg-primary/10 text-primary"
+                ? "bg-primary/10 text-primary shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--primary)_25%,transparent)]"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
               collapsed && "justify-center px-2",
             )}
@@ -85,16 +89,16 @@ function NavList({
   );
 }
 
-function Brand({ collapsed, name }: { collapsed: boolean; name: string }) {
+function Brand({ collapsed }: { collapsed: boolean }) {
   return (
     <div className={cn("flex items-center gap-2 px-4 py-4", collapsed && "justify-center px-2")}>
-      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground font-bold">
+      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-gradient-to-br from-primary to-primary/70 text-primary-foreground font-bold shadow-sm">
         C
       </div>
       {!collapsed && (
         <div className="min-w-0">
           <div className="truncate text-sm font-semibold">Clearview CRM</div>
-          <div className="truncate text-xs text-muted-foreground">{name}</div>
+          <div className="truncate text-[11px] text-muted-foreground">Revenue OS</div>
         </div>
       )}
     </div>
@@ -135,6 +139,7 @@ function TenantSwitcher({ slug }: { slug: string }) {
   const tenants = useAppSelector((s) => s.auth.tenants);
   const nav = useNavigate();
   const current = tenants.find((t) => t.slug === slug);
+  if (tenants.length <= 1) return null;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -187,6 +192,9 @@ function UserMenu() {
             <AvatarFallback className="text-xs">{initials}</AvatarFallback>
           </Avatar>
           <span className="hidden text-sm md:inline">{user?.name}</span>
+          <span className="hidden rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase text-muted-foreground md:inline">
+            {user?.role}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
@@ -208,23 +216,152 @@ function UserMenu() {
   );
 }
 
+/* --------- Global search with debounce --------- */
+interface SearchResults {
+  leads: { id: string; name: string; company: string }[];
+  deals: { id: string; title: string; company: string }[];
+  invoices: { id: string; number: string; clientName: string }[];
+  contacts: { id: string; name: string; company: string }[];
+}
+
+function GlobalSearch({ slug }: { slug: string }) {
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<SearchResults | null>(null);
+  const nav = useNavigate();
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    const term = q.trim();
+    if (!term) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const handle = setTimeout(async () => {
+      abortRef.current?.abort();
+      const ac = new AbortController();
+      abortRef.current = ac;
+      try {
+        const res = await api.get<SearchResults>(`/${slug}/search`, {
+          params: { q: term },
+          signal: ac.signal,
+        });
+        setData(res.data);
+      } catch {
+        /* aborted or failed */
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [q, slug]);
+
+  const total = useMemo(() => {
+    if (!data) return 0;
+    return data.leads.length + data.deals.length + data.invoices.length + data.contacts.length;
+  }, [data]);
+
+  function go(path: string) {
+    setOpen(false);
+    setQ("");
+    nav({ to: path });
+  }
+
+  return (
+    <div className="relative w-full max-w-md">
+      <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <Input
+        value={q}
+        placeholder="Search leads, deals, invoices, contacts..."
+        className="h-9 pl-9 pr-8"
+        onFocus={() => setOpen(true)}
+        onChange={(e) => {
+          setQ(e.target.value);
+          setOpen(true);
+        }}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+      />
+      {loading && (
+        <Loader2 className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+      )}
+      {open && q.trim() && (
+        <div className="absolute left-0 right-0 top-11 z-50 max-h-96 overflow-y-auto rounded-md border bg-popover p-2 shadow-lg">
+          {!data && loading && (
+            <div className="p-3 text-sm text-muted-foreground">Searching...</div>
+          )}
+          {data && total === 0 && !loading && (
+            <div className="p-3 text-sm text-muted-foreground">No results.</div>
+          )}
+          {data && (
+            <>
+              <Section title="Leads" items={data.leads.map((l) => ({
+                id: l.id, primary: l.name, secondary: l.company,
+                onClick: () => go(`/${slug}/leads`),
+              }))} />
+              <Section title="Deals" items={data.deals.map((d) => ({
+                id: d.id, primary: d.title, secondary: d.company,
+                onClick: () => go(`/${slug}/deals/${d.id}`),
+              }))} />
+              <Section title="Invoices" items={data.invoices.map((i) => ({
+                id: i.id, primary: i.number, secondary: i.clientName,
+                onClick: () => go(`/${slug}/invoices/${i.id}`),
+              }))} />
+              <Section title="Contacts" items={data.contacts.map((c) => ({
+                id: c.id, primary: c.name, secondary: c.company,
+                onClick: () => go(`/${slug}/activity`),
+              }))} />
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Section({
+  title, items,
+}: {
+  title: string;
+  items: { id: string; primary: string; secondary: string; onClick: () => void }[];
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div className="mb-2">
+      <div className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {title}
+      </div>
+      {items.map((it) => (
+        <button
+          key={it.id}
+          onMouseDown={(e) => { e.preventDefault(); it.onClick(); }}
+          className="flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
+        >
+          <span className="truncate">{it.primary}</span>
+          <span className="ml-3 truncate text-xs text-muted-foreground">{it.secondary}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function AppShell({ tenantSlug }: { tenantSlug: string }) {
   const dispatch = useAppDispatch();
   const collapsed = useAppSelector((s) => s.ui.sidebarCollapsed);
-  const tenants = useAppSelector((s) => s.auth.tenants);
-  const current = tenants.find((t) => t.slug === tenantSlug);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex h-screen w-full bg-background">
+    <div className="flex h-screen w-full bg-gradient-to-br from-background via-background to-muted/60">
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground transition-[width] duration-200 md:flex",
+          "hidden shrink-0 flex-col border-r bg-sidebar/80 text-sidebar-foreground backdrop-blur transition-[width] duration-200 md:flex",
           collapsed ? "w-16" : "w-60",
         )}
       >
-        <Brand collapsed={collapsed} name={current?.name || ""} />
+        <Brand collapsed={collapsed} />
         <NavList slug={tenantSlug} collapsed={collapsed} />
         <div className="border-t p-2">
           <Button
@@ -246,7 +383,7 @@ export function AppShell({ tenantSlug }: { tenantSlug: string }) {
 
       {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-card px-4">
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-card/70 px-4 backdrop-blur">
           {/* Mobile menu */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
@@ -255,18 +392,15 @@ export function AppShell({ tenantSlug }: { tenantSlug: string }) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-64 p-0">
-              <Brand collapsed={false} name={current?.name || ""} />
+              <Brand collapsed={false} />
               <NavList slug={tenantSlug} collapsed={false} onNavigate={() => setMobileOpen(false)} />
             </SheetContent>
           </Sheet>
 
           <TenantSwitcher slug={tenantSlug} />
 
-          <div className="ml-2 hidden max-w-md flex-1 md:block">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search leads, deals, invoices..." className="h-9 pl-9" />
-            </div>
+          <div className="ml-2 hidden flex-1 md:block">
+            <GlobalSearch slug={tenantSlug} />
           </div>
 
           <div className="ml-auto flex items-center gap-1">

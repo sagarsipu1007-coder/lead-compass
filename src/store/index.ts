@@ -5,6 +5,7 @@ import leads from "@/features/leads/slice";
 import deals from "@/features/deals/slice";
 import invoices from "@/features/invoices/slice";
 import notifications from "@/features/notifications/slice";
+import activity from "@/features/activity/slice";
 import ui from "@/features/ui/slice";
 
 const appReducer = combineReducers({
@@ -14,6 +15,7 @@ const appReducer = combineReducers({
   deals,
   invoices,
   notifications,
+  activity,
   ui,
 });
 
@@ -27,6 +29,7 @@ export const rootReducer: typeof appReducer = (state, action) => {
         deals: undefined as never,
         invoices: undefined as never,
         notifications: undefined as never,
+        activity: undefined as never,
       },
       action,
     );
