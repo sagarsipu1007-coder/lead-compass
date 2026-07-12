@@ -11,11 +11,19 @@ export interface Tenant {
   primaryColor: string;
 }
 
+export type UserRole =
+  | "admin"
+  | "owner"
+  | "manager"
+  | "rep"
+  | "finance"
+  | "customer";
+
 export interface User {
   id: ID;
   email: string;
   name: string;
-  role: "admin" | "manager" | "rep";
+  role: UserRole;
   tenantIds: ID[];
   avatarUrl?: string;
 }
@@ -95,6 +103,47 @@ export interface Activity {
   createdAt: string;
 }
 
+// --- Activity module entities -----------------------------------
+export interface Contact {
+  id: ID;
+  tenantId: ID;
+  name: string;
+  email: string;
+  phone?: string;
+  company: string;
+  title?: string;
+  ownerId?: ID;
+  createdAt: string;
+}
+
+export type FollowUpStatus = "pending" | "done" | "snoozed";
+export interface FollowUp {
+  id: ID;
+  tenantId: ID;
+  contactId?: ID;
+  dealId?: ID;
+  subject: string;
+  channel: "call" | "email" | "meeting";
+  dueDate: string;
+  status: FollowUpStatus;
+  assignedTo?: ID;
+  createdAt: string;
+}
+
+export type TaskStatus = "todo" | "in_progress" | "done";
+export type TaskPriority = "low" | "med" | "high";
+export interface Task {
+  id: ID;
+  tenantId: ID;
+  title: string;
+  description?: string;
+  dueDate: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assignedTo?: ID;
+  createdAt: string;
+}
+
 interface DB {
   users: User[];
   tenants: Tenant[];
@@ -103,9 +152,12 @@ interface DB {
   invoices: Invoice[];
   notifications: Notification[];
   activities: Activity[];
+  contacts: Contact[];
+  followUps: FollowUp[];
+  tasks: Task[];
 }
 
-const KEY = "crm.mock.db.v1";
+const KEY = "crm.mock.db.v2";
 const uid = () => Math.random().toString(36).slice(2, 10);
 const iso = (d: Date) => d.toISOString();
 const daysAgo = (n: number) => iso(new Date(Date.now() - n * 86400_000));
@@ -117,41 +169,17 @@ function seed(): DB {
     { id: "t_globex", slug: "globex", name: "Globex Ltd", primaryColor: "#10B981" },
   ];
   const users: User[] = [
-    {
-      id: "u_1",
-      email: "demo@crm.app",
-      name: "Alex Morgan",
-      role: "admin",
-      tenantIds: ["t_acme", "t_globex"],
-    },
-    {
-      id: "u_2",
-      email: "sam@crm.app",
-      name: "Sam Rivera",
-      role: "manager",
-      tenantIds: ["t_acme"],
-    },
-    {
-      id: "u_3",
-      email: "jordan@crm.app",
-      name: "Jordan Lee",
-      role: "rep",
-      tenantIds: ["t_acme", "t_globex"],
-    },
+    { id: "u_admin", email: "admin@crm.app", name: "Alex Morgan", role: "admin", tenantIds: ["t_acme", "t_globex"] },
+    { id: "u_owner", email: "owner@crm.app", name: "Priya Shah", role: "owner", tenantIds: ["t_acme"] },
+    { id: "u_manager", email: "manager@crm.app", name: "Sam Rivera", role: "manager", tenantIds: ["t_acme"] },
+    { id: "u_rep", email: "rep@crm.app", name: "Jordan Lee", role: "rep", tenantIds: ["t_acme", "t_globex"] },
+    { id: "u_finance", email: "finance@crm.app", name: "Mia Chen", role: "finance", tenantIds: ["t_acme"] },
+    { id: "u_customer", email: "customer@crm.app", name: "Owen Davis", role: "customer", tenantIds: ["t_acme"] },
+    // Legacy demo login kept for backwards compat
+    { id: "u_demo", email: "demo@crm.app", name: "Alex Morgan", role: "admin", tenantIds: ["t_acme", "t_globex"] },
   ];
 
-  const companies = [
-    "Northwind",
-    "Contoso",
-    "Initech",
-    "Umbrella",
-    "Stark Industries",
-    "Wayne Enterprises",
-    "Wonka",
-    "Hooli",
-    "Pied Piper",
-    "Massive Dynamic",
-  ];
+  const companies = ["Northwind", "Contoso", "Initech", "Umbrella", "Stark Industries", "Wayne Enterprises", "Wonka", "Hooli", "Pied Piper", "Massive Dynamic"];
   const first = ["Ava", "Liam", "Noah", "Mia", "Ethan", "Zoe", "Owen", "Lily", "Ryan", "Nora"];
   const last = ["Chen", "Patel", "Kim", "Garcia", "Smith", "Nguyen", "Brown", "Davis", "Lopez", "Cohen"];
   const sources: Lead["source"][] = ["web", "referral", "outbound", "event"];
@@ -159,6 +187,7 @@ function seed(): DB {
 
   const leads: Lead[] = [];
   const deals: Deal[] = [];
+  const contacts: Contact[] = [];
   for (const t of tenants) {
     for (let i = 0; i < 24; i++) {
       const fn = first[i % first.length];
@@ -173,7 +202,7 @@ function seed(): DB {
         phone: `+1 555-01${(10 + i).toString().padStart(2, "0")}`,
         source: sources[i % sources.length],
         status: statuses[i % statuses.length],
-        assignedTo: users[(i % 2) + 1].id,
+        assignedTo: users[(i % 3) + 2].id,
         createdAt: daysAgo(i),
       });
     }
@@ -186,9 +215,25 @@ function seed(): DB {
         company: companies[i % companies.length],
         amount: 5000 + ((i * 1373) % 90000),
         stage,
-        ownerId: users[(i % 2) + 1].id,
+        ownerId: users[(i % 3) + 2].id,
         closeDate: daysAhead(((i * 7) % 60) - 10),
         createdAt: daysAgo((i * 3) % 40),
+      });
+    }
+    for (let i = 0; i < 16; i++) {
+      const fn = first[(i + 2) % first.length];
+      const ln = last[(i * 2) % last.length];
+      const c = companies[(i + 1) % companies.length];
+      contacts.push({
+        id: uid(),
+        tenantId: t.id,
+        name: `${fn} ${ln}`,
+        email: `${fn.toLowerCase()}@${c.toLowerCase()}.com`,
+        phone: `+1 555-02${(10 + i).toString().padStart(2, "0")}`,
+        company: c,
+        title: ["CTO", "Head of Ops", "VP Sales", "Founder", "Buyer"][i % 5],
+        ownerId: users[(i % 3) + 2].id,
+        createdAt: daysAgo(i * 2),
       });
     }
   }
@@ -222,7 +267,7 @@ function seed(): DB {
       notifications.push({
         id: uid(),
         tenantId: t.id,
-        userId: "u_1",
+        userId: "u_admin",
         title: ["New lead assigned", "Deal moved to Won", "Invoice overdue", "Reminder"][i % 4],
         body: "Auto-generated activity in your workspace.",
         createdAt: daysAgo(i),
@@ -248,7 +293,43 @@ function seed(): DB {
     }
   }
 
-  return { users, tenants, leads, deals, invoices, notifications, activities };
+  const followUps: FollowUp[] = [];
+  const tasks: Task[] = [];
+  for (const t of tenants) {
+    const tenantContacts = contacts.filter((c) => c.tenantId === t.id);
+    for (let i = 0; i < 12; i++) {
+      followUps.push({
+        id: uid(),
+        tenantId: t.id,
+        contactId: tenantContacts[i % tenantContacts.length]?.id,
+        subject: ["Discovery call", "Send proposal", "Contract review", "Renewal check-in"][i % 4],
+        channel: (["call", "email", "meeting"] as const)[i % 3],
+        dueDate: daysAhead((i % 10) - 3),
+        status: (["pending", "done", "snoozed"] as const)[i % 3],
+        assignedTo: users[(i % 3) + 2].id,
+        createdAt: daysAgo(i),
+      });
+      tasks.push({
+        id: uid(),
+        tenantId: t.id,
+        title: [
+          "Prepare quarterly forecast",
+          "Update pricing sheet",
+          "Onboard new customer",
+          "Chase overdue invoice",
+          "Review pipeline hygiene",
+        ][i % 5],
+        description: "Auto-seeded demo task.",
+        dueDate: daysAhead((i % 14) - 4),
+        status: (["todo", "in_progress", "done"] as const)[i % 3],
+        priority: (["low", "med", "high"] as const)[i % 3],
+        assignedTo: users[(i % 3) + 2].id,
+        createdAt: daysAgo(i),
+      });
+    }
+  }
+
+  return { users, tenants, leads, deals, invoices, notifications, activities, contacts, followUps, tasks };
 }
 
 let cache: DB | null = null;
