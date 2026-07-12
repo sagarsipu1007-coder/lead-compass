@@ -20,6 +20,7 @@ import { Route as AppTenantSlugLeadsRouteImport } from './routes/_app.$tenantSlu
 import { Route as AppTenantSlugInvoicesRouteImport } from './routes/_app.$tenantSlug.invoices'
 import { Route as AppTenantSlugDealsRouteImport } from './routes/_app.$tenantSlug.deals'
 import { Route as AppTenantSlugDashboardRouteImport } from './routes/_app.$tenantSlug.dashboard'
+import { Route as AppTenantSlugActivityRouteImport } from './routes/_app.$tenantSlug.activity'
 import { Route as AppTenantSlugInvoicesInvoiceIdRouteImport } from './routes/_app.$tenantSlug.invoices.$invoiceId'
 import { Route as AppTenantSlugDealsDealIdRouteImport } from './routes/_app.$tenantSlug.deals.$dealId'
 
@@ -78,6 +79,11 @@ const AppTenantSlugDashboardRoute = AppTenantSlugDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppTenantSlugRoute,
 } as any)
+const AppTenantSlugActivityRoute = AppTenantSlugActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => AppTenantSlugRoute,
+} as any)
 const AppTenantSlugInvoicesInvoiceIdRoute =
   AppTenantSlugInvoicesInvoiceIdRouteImport.update({
     id: '/$invoiceId',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/$tenantSlug': typeof AppTenantSlugRouteWithChildren
+  '/$tenantSlug/activity': typeof AppTenantSlugActivityRoute
   '/$tenantSlug/dashboard': typeof AppTenantSlugDashboardRoute
   '/$tenantSlug/deals': typeof AppTenantSlugDealsRouteWithChildren
   '/$tenantSlug/invoices': typeof AppTenantSlugInvoicesRouteWithChildren
@@ -108,6 +115,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/$tenantSlug/activity': typeof AppTenantSlugActivityRoute
   '/$tenantSlug/dashboard': typeof AppTenantSlugDashboardRoute
   '/$tenantSlug/deals': typeof AppTenantSlugDealsRouteWithChildren
   '/$tenantSlug/invoices': typeof AppTenantSlugInvoicesRouteWithChildren
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/_app/$tenantSlug': typeof AppTenantSlugRouteWithChildren
+  '/_app/$tenantSlug/activity': typeof AppTenantSlugActivityRoute
   '/_app/$tenantSlug/dashboard': typeof AppTenantSlugDashboardRoute
   '/_app/$tenantSlug/deals': typeof AppTenantSlugDealsRouteWithChildren
   '/_app/$tenantSlug/invoices': typeof AppTenantSlugInvoicesRouteWithChildren
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/$tenantSlug'
+    | '/$tenantSlug/activity'
     | '/$tenantSlug/dashboard'
     | '/$tenantSlug/deals'
     | '/$tenantSlug/invoices'
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/$tenantSlug/activity'
     | '/$tenantSlug/dashboard'
     | '/$tenantSlug/deals'
     | '/$tenantSlug/invoices'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/login'
     | '/_app/$tenantSlug'
+    | '/_app/$tenantSlug/activity'
     | '/_app/$tenantSlug/dashboard'
     | '/_app/$tenantSlug/deals'
     | '/_app/$tenantSlug/invoices'
@@ -264,6 +276,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTenantSlugDashboardRouteImport
       parentRoute: typeof AppTenantSlugRoute
     }
+    '/_app/$tenantSlug/activity': {
+      id: '/_app/$tenantSlug/activity'
+      path: '/activity'
+      fullPath: '/$tenantSlug/activity'
+      preLoaderRoute: typeof AppTenantSlugActivityRouteImport
+      parentRoute: typeof AppTenantSlugRoute
+    }
     '/_app/$tenantSlug/invoices/$invoiceId': {
       id: '/_app/$tenantSlug/invoices/$invoiceId'
       path: '/$invoiceId'
@@ -306,6 +325,7 @@ const AppTenantSlugInvoicesRouteWithChildren =
   )
 
 interface AppTenantSlugRouteChildren {
+  AppTenantSlugActivityRoute: typeof AppTenantSlugActivityRoute
   AppTenantSlugDashboardRoute: typeof AppTenantSlugDashboardRoute
   AppTenantSlugDealsRoute: typeof AppTenantSlugDealsRouteWithChildren
   AppTenantSlugInvoicesRoute: typeof AppTenantSlugInvoicesRouteWithChildren
@@ -316,6 +336,7 @@ interface AppTenantSlugRouteChildren {
 }
 
 const AppTenantSlugRouteChildren: AppTenantSlugRouteChildren = {
+  AppTenantSlugActivityRoute: AppTenantSlugActivityRoute,
   AppTenantSlugDashboardRoute: AppTenantSlugDashboardRoute,
   AppTenantSlugDealsRoute: AppTenantSlugDealsRouteWithChildren,
   AppTenantSlugInvoicesRoute: AppTenantSlugInvoicesRouteWithChildren,
